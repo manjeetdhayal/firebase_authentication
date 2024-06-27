@@ -81,7 +81,7 @@ class _HomePageState extends State<HomePage> {
                     children: <Widget>[
                       Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Text('Age: ${userProfile.age}', style: TextStyle(fontSize: 18.0)),
+                        // child: Text('Age: ${userProfile.age}', style: TextStyle(fontSize: 18.0)),
                       ),
                       ButtonBar(
                         children: <Widget>[
