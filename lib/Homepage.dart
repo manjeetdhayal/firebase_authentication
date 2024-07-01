@@ -13,6 +13,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final List<UserProfile> userProfiles = [];
+  final likes = [];
+  final Map<String, int> likesContainer = {};
+  final dislikes = [];
 
   //get all user profiles exvept the loggedin user
   void _getAllUsers() async {
@@ -25,6 +28,7 @@ class _HomePageState extends State<HomePage> {
       for (UserProfile user in allUsers) {
         if (user.email != loggedInUserEmail) {
           users.add(user);
+          print(user);
         }
       }
     } catch (e) {
@@ -35,6 +39,7 @@ class _HomePageState extends State<HomePage> {
       userProfiles.addAll(users);
     });
   }
+
 
   //on page load call getAllusers()
   @override
@@ -48,7 +53,17 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.userName),
+        title: Text('Hey, ${widget.userName}'),
+        automaticallyImplyLeading: false,
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () async {
+              await Database().signOut();
+              Navigator.pop(context);
+            },
+          ),
+        ],
       ),
       body: ListView.builder(
         itemCount: userProfiles.length,
@@ -87,24 +102,30 @@ class _HomePageState extends State<HomePage> {
                         children: <Widget>[
                           IconButton(
                             icon: Icon(Icons.thumb_up, color: userProfile.isLiked ? Colors.green : Colors.grey),
-                            onPressed: () {
+                            onPressed: () async {
                               setState(() {
                                 userProfile.isLiked = !userProfile.isLiked;
                               });
-                              Database().updateLike(userProfile.email, userProfile.isLiked);
+                              await Database().updateLikes(userProfile.email, await Database().getUserEmail());
+                              _getAllUsers(); // Refresh the list of users
                             },
                           ),
+                          Text('${userProfile.like}', style: TextStyle(fontSize: 18.0)),
+
                           IconButton(
                             icon: Icon(Icons.thumb_down, color: userProfile.isLiked ? Colors.grey : Colors.red),
-                            onPressed: () {
+                            onPressed: () async {
                               print(userProfile.email);
                               setState(() {
                                 userProfile.isLiked = !userProfile.isLiked;
                                 userProfile.isLiked = false; // Reset like if the user dislikes the profile
                               });
-                              Database().updateLike(userProfile.email, userProfile.isLiked);
+                              // Database().updateLike(userProfile.email, userProfile.isLiked);
+                              await Database().updateDislikes(userProfile.email, await Database().getUserEmail());
+                              _getAllUsers(); // Refresh the list of users
                             },
                           ),
+                          Text('${userProfile.dislike}', style: TextStyle(fontSize: 18.0)),
                         ],
                       ),
                     ],

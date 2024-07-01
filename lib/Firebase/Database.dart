@@ -47,15 +47,28 @@ class Database {
   }
 
   //method to updateLike
-  void updateLike(String uid, bool isLiked) async {
-    try {
-      await _firestore.collection('users').doc(uid).update({
-        'isLiked': isLiked,
-      });
-    } catch (e) {
-      print(e.toString());
-      throw e;
-    }
+  Future<void> updateLike(String uid) async {
+    DocumentSnapshot userDoc = await _firestore.collection('UserEngagement').doc(uid).get();
+    Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+    List<String> likes = (userData['likes'] as List<dynamic>).map((item) => item.toString()).toList() ?? [];
+    await _firestore.collection('users').doc(uid).update({
+      'like': likes.length,
+    });
+  }
+
+  Future<void> updateDislike(String uid) async {
+    DocumentSnapshot userDoc = await _firestore.collection('UserEngagement').doc(uid).get();
+    Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+    List<String> dislikes = (userData['dislikes'] as List<dynamic>).map((item) => item.toString()).toList() ?? [];
+    await _firestore.collection('users').doc(uid).update({
+      'dislike': dislikes.length,
+    });
+  }
+
+  void updateLikedByMe(String uid, bool isLiked) async {
+    await _firestore.collection('users').doc(uid).update({
+      'isLiked': isLiked,
+    });
   }
 
   //get logged in user email
@@ -66,5 +79,71 @@ class Database {
       print(e.toString());
       throw e;
     }
+  }
+
+  Future<void> updateLikes(String uid, String likerUid) async {
+    try {
+      DocumentSnapshot doc = await _firestore.collection('UserEngagement').doc(uid).get();
+      if (!doc.exists) {
+        // If the document does not exist, create a new one
+        await _firestore.collection('UserEngagement').doc(uid).set({
+          'likes': [],
+          'dislikes': [],
+        });
+      }
+      await _firestore.collection('UserEngagement').doc(uid).update({
+        'likes': FieldValue.arrayUnion([likerUid]),
+        'dislikes': FieldValue.arrayRemove([likerUid]), // Remove from dislikes if the user likes the profile
+      });
+
+      await updateLike(uid);
+      await updateDislike(uid);
+      updateLikedByMe(uid, true);
+    } catch (e) {
+      print(e.toString());
+      throw e;
+    }
+  }
+
+  // Method to update dislikes
+  Future<void> updateDislikes(String uid, String dislikerUid) async {
+    try {
+      DocumentSnapshot doc = await _firestore.collection('UserEngagement').doc(uid).get();
+      if (!doc.exists) {
+        // If the document does not exist, create a new one
+        await _firestore.collection('UserEngagement').doc(uid).set({
+          'likes': [],
+          'dislikes': [],
+        });
+      }
+      await _firestore.collection('UserEngagement').doc(uid).update({
+        'dislikes': FieldValue.arrayUnion([dislikerUid]),
+        'likes': FieldValue.arrayRemove([dislikerUid]), // Remove from likes if the user dislikes the profile
+      });
+      await updateLike(uid);
+      await updateDislike(uid);
+      updateLikedByMe(uid, false);
+    } catch (e) {
+      print(e.toString());
+      throw e;
+    }
+  }
+
+  // Method to get likes and dislikes
+  Future<DocumentSnapshot?> getUserEngagement(String uid) async {
+    try {
+      DocumentSnapshot doc = await _firestore.collection('UserEngagement').doc(uid).get();
+      if (!doc.exists) {
+        return null;
+      }
+      return doc;
+    } catch (e) {
+      print(e.toString());
+      throw e;
+    }
+  }
+
+  signOut() {
+    _auth.signOut();
   }
 }

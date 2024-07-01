@@ -84,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ElevatedButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/register');
-                }, child: Text('Register'),
+                }, child: const Text('Not a user ? Register'),
               ),
             ],
           ),
