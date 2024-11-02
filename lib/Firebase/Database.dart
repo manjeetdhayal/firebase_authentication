@@ -81,6 +81,14 @@ class Database {
     }
   }
 
+  Future<void> updateUserProfile(String email, Map<String, dynamic> updatedData) async {
+    try {
+      await _firestore.collection('users').doc(email).update(updatedData);
+    } catch (e) {
+      print(e.toString());
+      throw e;
+    }
+  }
   Future<void> updateLikes(String uid, String likerUid) async {
     try {
       DocumentSnapshot doc = await _firestore.collection('UserEngagement').doc(uid).get();

@@ -1,3 +1,6 @@
+import 'package:firebase_authentication/Model/UserProfile.dart';
+import 'package:firebase_authentication/SettingsPage.dart';
+import 'package:firebase_authentication/UserProfilePage.dart';
 import 'package:firebase_authentication/registration.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +26,11 @@ class MyApp extends StatelessWidget {
       home: LoginScreen(),
       routes: {
         '/register': (context) => RegisterScreen(),
+        '/settings': (context) => SettingsPage(),
+        '/userProfile': (context) {
+          final UserProfile userProfile = ModalRoute.of(context)!.settings.arguments as UserProfile;
+          return UserProfilePage(userProfile: userProfile);
+        },
       },
     );
   }

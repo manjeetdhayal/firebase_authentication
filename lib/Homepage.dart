@@ -1,7 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_authentication/Model/UserProfile.dart';
-import 'package:flutter/material.dart';
 import 'package:firebase_authentication/Firebase/Database.dart';
+
 class HomePage extends StatefulWidget {
   final String userName;
 
@@ -17,7 +18,7 @@ class _HomePageState extends State<HomePage> {
   final Map<String, int> likesContainer = {};
   final dislikes = [];
 
-  //get all user profiles exvept the loggedin user
+  //get all user profiles except the logged-in user
   void _getAllUsers() async {
     List<UserProfile> users = [];
     List<UserProfile> allUsers = [];
@@ -40,8 +41,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-
-  //on page load call getAllusers()
+  //on page load call getAllUsers()
   @override
   void initState() {
     super.initState();
@@ -56,6 +56,12 @@ class _HomePageState extends State<HomePage> {
         title: Text('Hey, ${widget.userName}'),
         automaticallyImplyLeading: false,
         actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () {
+              Navigator.pushNamed(context, '/settings');
+            },
+          ),
           IconButton(
             icon: Icon(Icons.logout),
             onPressed: () async {
@@ -79,6 +85,19 @@ class _HomePageState extends State<HomePage> {
                 children: <Widget>[
                   ListTile(
                     title: Text(userProfile.name, style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold)),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (String result) {
+                        if (result == 'View Profile') {
+                          Navigator.pushNamed(context, '/userProfile', arguments: userProfile);
+                        }
+                      },
+                      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                        const PopupMenuItem<String>(
+                          value: 'View Profile',
+                          child: Text('View Profile'),
+                        ),
+                      ],
+                    ),
                   ),
                   (userProfiles[index].imageUrl != '') ? Image.network(
                     userProfile.imageUrl,
@@ -96,7 +115,6 @@ class _HomePageState extends State<HomePage> {
                     children: <Widget>[
                       Padding(
                         padding: const EdgeInsets.all(8.0),
-                        // child: Text('Age: ${userProfile.age}', style: TextStyle(fontSize: 18.0)),
                       ),
                       ButtonBar(
                         children: <Widget>[
@@ -120,7 +138,6 @@ class _HomePageState extends State<HomePage> {
                                 userProfile.isLiked = !userProfile.isLiked;
                                 userProfile.isLiked = false; // Reset like if the user dislikes the profile
                               });
-                              // Database().updateLike(userProfile.email, userProfile.isLiked);
                               await Database().updateDislikes(userProfile.email, await Database().getUserEmail());
                               _getAllUsers(); // Refresh the list of users
                             },
